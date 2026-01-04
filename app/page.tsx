@@ -5,6 +5,7 @@ import { FileUpload } from '@/components/FileUpload';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ResultsSummary } from '@/components/ResultsSummary';
 import { CompareView } from '@/components/CompareView';
+import { DocumentBuilder } from '@/components/DocumentBuilder';
 import { useWorker } from '@/lib/useWorker';
 import { ProcessingResult } from '@/lib/types';
 import { applyUserOverrides } from '@/lib/match';
@@ -120,6 +121,11 @@ export default function Home() {
               docBName={fileNames.b}
               onExport={handleExport}
               onReset={handleReset}
+            />
+            <DocumentBuilder
+              result={result}
+              docAName={fileNames.a}
+              docBName={fileNames.b}
             />
             <CompareView 
               matches={result.matches} 

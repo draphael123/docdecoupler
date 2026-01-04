@@ -87,3 +87,19 @@ export interface WorkerResponse {
   progress?: number;
 }
 
+export interface DocumentSelection {
+  includeShared: boolean;
+  includeUniqueA: boolean;
+  includeUniqueB: boolean;
+  includePageNumbers: boolean;
+  includeSourceInfo: boolean;
+  documentTitle?: string;
+}
+
+export interface DocumentContent {
+  text: string;
+  pageNumber?: number;
+  source: 'shared' | 'uniqueA' | 'uniqueB';
+  originalPage?: number;
+}
+
