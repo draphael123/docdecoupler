@@ -102,15 +102,26 @@ export function generateDocument(
     });
   }
 
-  // Sort content by original page number if available
+  // For master documents: Sort content intelligently
+  // 1. Sort by original page number to maintain document flow
+  // 2. When unique content exists, place it near shared content from the same page range
   content.sort((a, b) => {
     if (a.originalPage && b.originalPage) {
-      return a.originalPage - b.originalPage;
+      // Primary sort: by page number
+      if (a.originalPage !== b.originalPage) {
+        return a.originalPage - b.originalPage;
+      }
+      // Secondary sort: shared content first, then unique A, then unique B
+      // This ensures shared content appears first, with unique content following
+      const sourceOrder = { 'shared': 0, 'uniqueA': 1, 'uniqueB': 2 };
+      return (sourceOrder[a.source] || 3) - (sourceOrder[b.source] || 3);
     }
-    return 0;
+    // If no page numbers, maintain source order: shared, uniqueA, uniqueB
+    const sourceOrder = { 'shared': 0, 'uniqueA': 1, 'uniqueB': 2 };
+    return (sourceOrder[a.source] || 3) - (sourceOrder[b.source] || 3);
   });
 
-  // Add content as standard document (no section headers, no page numbers)
+  // Add content as standard master document (no annotations, natural flow)
   content.forEach((item, index) => {
     // Check if we need a new page
     if (yPosition > pageBreakHeight) {
@@ -119,13 +130,14 @@ export function generateDocument(
     }
 
     // Add text content directly - clean, standard format
+    // Master document flows naturally with all content merged
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     
     const textLines = doc.splitTextToSize(item.text, maxWidth);
     doc.text(textLines, margin, yPosition);
-    yPosition += textLines.length * lineHeight + 5; // Slightly more spacing between paragraphs
+    yPosition += textLines.length * lineHeight + 5; // Natural paragraph spacing
   });
 
   // Skip footer - generate standard document without generation info
@@ -163,7 +175,8 @@ export function generateTextDocument(
   const shouldIncludeUniqueA = selection.includeUniqueA && !selection.onlyShowShared;
   const shouldIncludeUniqueB = selection.includeUniqueB && !selection.onlyShowShared;
 
-  // Add content as standard document (no section headers, no page numbers, no metadata)
+  // Build master document content array for intelligent sorting
+  const textContent: Array<{ text: string; originalPage?: number; source: 'shared' | 'uniqueA' | 'uniqueB' }> = [];
   
   // Add shared content with filtering
   if (shouldIncludeShared) {
@@ -179,23 +192,53 @@ export function generateTextDocument(
         return true;
       })
       .forEach(match => {
-        content += match.unitA.rawText + '\n\n';
+        textContent.push({
+          text: match.unitA.rawText,
+          originalPage: match.unitA.pageNumber,
+          source: 'shared',
+        });
       });
   }
 
   // Add unique to A
   if (shouldIncludeUniqueA) {
     result.uniqueA.forEach(unit => {
-      content += unit.rawText + '\n\n';
+      textContent.push({
+        text: unit.rawText,
+        originalPage: unit.pageNumber,
+        source: 'uniqueA',
+      });
     });
   }
 
   // Add unique to B
   if (shouldIncludeUniqueB) {
     result.uniqueB.forEach(unit => {
-      content += unit.rawText + '\n\n';
+      textContent.push({
+        text: unit.rawText,
+        originalPage: unit.pageNumber,
+        source: 'uniqueB',
+      });
     });
   }
+
+  // Sort for master document: by page number, then shared first
+  textContent.sort((a, b) => {
+    if (a.originalPage && b.originalPage) {
+      if (a.originalPage !== b.originalPage) {
+        return a.originalPage - b.originalPage;
+      }
+      const sourceOrder = { 'shared': 0, 'uniqueA': 1, 'uniqueB': 2 };
+      return (sourceOrder[a.source] || 3) - (sourceOrder[b.source] || 3);
+    }
+    const sourceOrder = { 'shared': 0, 'uniqueA': 1, 'uniqueB': 2 };
+    return (sourceOrder[a.source] || 3) - (sourceOrder[b.source] || 3);
+  });
+
+  // Build final content string
+  textContent.forEach(item => {
+    content += item.text + '\n\n';
+  });
 
   // Download as text file
   const blob = new Blob([content], { type: 'text/plain' });

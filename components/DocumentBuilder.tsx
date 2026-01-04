@@ -15,8 +15,8 @@ interface DocumentBuilderProps {
 export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderProps) {
   const [selection, setSelection] = useState<DocumentSelection>({
     includeShared: true,
-    includeUniqueA: false,
-    includeUniqueB: false,
+    includeUniqueA: true,  // Default to including unique from both for master doc
+    includeUniqueB: true,  // Default to including unique from both for master doc
     includePageNumbers: true,
     includeSourceInfo: true,
     documentTitle: '',
@@ -77,14 +77,13 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
   return (
     <div className="document-builder">
       <div className="builder-header">
-        <h2>Create New Document</h2>
+        <h2>Create Master Document</h2>
         <p className="builder-subtitle">
-          Select content to include in your generated document. Documents are generated in standard format without page numbers or section headers.
+          Merge two similar documents into one master document. Include all shared content plus unique information from both documents.
         </p>
         <div className="builder-help">
-          <strong>💡 How it works:</strong> Select which content types to include (Shared, Unique A, Unique B). 
-          Use the hide/remove options to filter content (e.g., exclude low-confidence matches). 
-          The generated document will be a clean, standard document with just the selected text content - no annotations or metadata.
+          <strong>💡 Master Document Use Case:</strong> Perfect for documents that are mostly similar but have a few differences (e.g., contract versions, policy updates, report revisions). 
+          The master document will include all common content plus all unique information from both documents, organized in a natural flow.
         </div>
       </div>
 
@@ -131,7 +130,16 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
 
         {/* Content Selection */}
         <div className="builder-section">
-          <label className="section-label">Content to Include</label>
+          <label className="section-label">Master Document Content</label>
+          <div className="master-doc-explanation">
+            <p>A master document combines all content from both documents:</p>
+            <ul>
+              <li><strong>Shared Content:</strong> Common text found in both documents</li>
+              <li><strong>Unique to A:</strong> Information only in the first document</li>
+              <li><strong>Unique to B:</strong> Information only in the second document</li>
+            </ul>
+            <p className="master-note">💡 For a complete master document, include all three. Uncheck any you want to exclude.</p>
+          </div>
           <div className="checkbox-group">
             <label className="checkbox-option">
               <input
@@ -140,7 +148,7 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
                 onChange={() => handleToggle('includeShared')}
               />
               <div className="option-content">
-                <span className="option-title">Shared Content</span>
+                <span className="option-title">✅ Shared Content (Common to Both)</span>
                 <span className="option-count">
                   {result.matches.filter(m => m.userOverride !== 'unique').length} lines
                 </span>
@@ -154,7 +162,7 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
                 onChange={() => handleToggle('includeUniqueA')}
               />
               <div className="option-content">
-                <span className="option-title">Unique to Document A</span>
+                <span className="option-title">📄 Unique to Document A</span>
                 <span className="option-count">
                   {result.uniqueA.length} lines ({docAName})
                 </span>
@@ -168,7 +176,7 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
                 onChange={() => handleToggle('includeUniqueB')}
               />
               <div className="option-content">
-                <span className="option-title">Unique to Document B</span>
+                <span className="option-title">📄 Unique to Document B</span>
                 <span className="option-count">
                   {result.uniqueB.length} lines ({docBName})
                 </span>
@@ -410,7 +418,7 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
           onClick={handleGenerate}
           disabled={isGenerating || stats.totalLines === 0}
         >
-          {isGenerating ? 'Generating...' : `Generate ${documentType.toUpperCase()} Document`}
+          {isGenerating ? 'Generating Master Document...' : `Generate Master ${documentType.toUpperCase()} Document`}
         </button>
 
         {stats.totalLines === 0 && (
@@ -502,6 +510,44 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
           color: #667eea;
           display: block;
           margin-bottom: 0.5rem;
+        }
+
+        .master-doc-explanation {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+          border-radius: 12px;
+          padding: 1.25rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .master-doc-explanation p {
+          margin: 0 0 0.75rem 0;
+          color: #333;
+          font-size: 0.95rem;
+          line-height: 1.6;
+        }
+
+        .master-doc-explanation ul {
+          margin: 0.75rem 0;
+          padding-left: 1.5rem;
+          color: #666;
+          line-height: 1.8;
+        }
+
+        .master-doc-explanation li {
+          margin-bottom: 0.5rem;
+        }
+
+        .master-doc-explanation li strong {
+          color: #667eea;
+        }
+
+        .master-note {
+          margin-top: 1rem !important;
+          padding-top: 1rem;
+          border-top: 1px solid rgba(102, 126, 234, 0.2);
+          font-weight: 600;
+          color: #667eea !important;
         }
 
         .builder-content {
