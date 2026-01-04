@@ -2,6 +2,7 @@
 
 import { ProcessingResult } from '@/lib/types';
 import { TipsPanel } from './TipsPanel';
+import { exportToMarkdown, exportToCSV, downloadFile } from '@/lib/exportFormats';
 
 interface ResultsSummaryProps {
   result: ProcessingResult;
@@ -62,9 +63,33 @@ export function ResultsSummary({
               📚 History
             </button>
           )}
-          <button onClick={onExport} className="export-btn">
-            Export JSON
-          </button>
+          <div className="export-menu">
+            <button onClick={onExport} className="export-btn">
+              Export JSON
+            </button>
+            <div className="export-dropdown">
+              <button 
+                onClick={() => {
+                  const markdown = exportToMarkdown(result, docAName, docBName);
+                  const timestamp = new Date().toISOString().split('T')[0];
+                  downloadFile(markdown, `comparison-${timestamp}.md`, 'text/markdown');
+                }}
+                className="export-option"
+              >
+                📝 Markdown
+              </button>
+              <button 
+                onClick={() => {
+                  const csv = exportToCSV(result, docAName, docBName);
+                  const timestamp = new Date().toISOString().split('T')[0];
+                  downloadFile(csv, `comparison-${timestamp}.csv`, 'text/csv');
+                }}
+                className="export-option"
+              >
+                📊 CSV
+              </button>
+            </div>
+          </div>
           <button onClick={onReset} className="reset-btn">
             New Comparison
           </button>
@@ -200,6 +225,48 @@ export function ResultsSummary({
         .undo-btn:disabled, .redo-btn:disabled {
           opacity: 0.4;
           cursor: not-allowed;
+        }
+
+        .export-menu {
+          position: relative;
+        }
+
+        .export-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          margin-top: 0.5rem;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 12px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          padding: 0.5rem;
+          display: none;
+          flex-direction: column;
+          gap: 0.25rem;
+          min-width: 150px;
+          z-index: 100;
+        }
+
+        .export-menu:hover .export-dropdown {
+          display: flex;
+        }
+
+        .export-option {
+          padding: 0.75rem 1rem;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          cursor: pointer;
+          text-align: left;
+          font-size: 0.9rem;
+          transition: all 0.2s;
+          color: #333;
+        }
+
+        .export-option:hover {
+          background: rgba(102, 126, 234, 0.1);
+          color: #667eea;
         }
 
         .export-btn, .reset-btn {

@@ -14,14 +14,46 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
   const [sortBy, setSortBy] = useState<'confidence' | 'page'>('confidence');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [minPage, setMinPage] = useState<number>(0);
+  const [maxPage, setMaxPage] = useState<number>(0);
+  const [minConfidence, setMinConfidence] = useState<number>(0);
+  const [maxConfidence, setMaxConfidence] = useState<number>(100);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Calculate page range
+  const pageRange = matches.length > 0 ? {
+    min: Math.min(...matches.map(m => Math.min(m.unitA.pageNumber, m.unitB.pageNumber))),
+    max: Math.max(...matches.map(m => Math.max(m.unitA.pageNumber, m.unitB.pageNumber))),
+  } : { min: 0, max: 0 };
+
+  // Initialize page range
+  if (minPage === 0 && maxPage === 0 && pageRange.max > 0) {
+    setMinPage(pageRange.min);
+    setMaxPage(pageRange.max);
+  }
 
   // Filter matches
   let filteredMatches = matches;
+  
+  // Match type filter
   if (filter === 'exact') {
-    filteredMatches = matches.filter(m => m.matchType === 'exact');
+    filteredMatches = filteredMatches.filter(m => m.matchType === 'exact');
   } else if (filter === 'fuzzy') {
-    filteredMatches = matches.filter(m => m.matchType === 'fuzzy');
+    filteredMatches = filteredMatches.filter(m => m.matchType === 'fuzzy');
   }
+
+  // Page range filter
+  filteredMatches = filteredMatches.filter(m => {
+    const pageA = m.unitA.pageNumber;
+    const pageB = m.unitB.pageNumber;
+    return (pageA >= minPage && pageA <= maxPage) || (pageB >= minPage && pageB <= maxPage);
+  });
+
+  // Confidence range filter
+  filteredMatches = filteredMatches.filter(m => {
+    const confidencePercent = m.confidence * 100;
+    return confidencePercent >= minConfidence && confidencePercent <= maxConfidence;
+  });
 
   // Search filter
   if (searchQuery.trim()) {
@@ -109,7 +141,84 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
               <option value="page">Page Number</option>
             </select>
           </div>
+          <button
+            className="advanced-filters-btn"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          >
+            {showAdvancedFilters ? '▼' : '▶'} Advanced
+          </button>
         </div>
+
+        {showAdvancedFilters && pageRange.max > 0 && (
+          <div className="advanced-filters">
+            <div className="filter-section">
+              <label className="filter-section-label">Page Range: {minPage} - {maxPage}</label>
+              <div className="range-inputs">
+                <div className="range-input">
+                  <label>Min:</label>
+                  <input
+                    type="number"
+                    min={pageRange.min}
+                    max={pageRange.max}
+                    value={minPage}
+                    onChange={(e) => setMinPage(Math.max(pageRange.min, Math.min(pageRange.max, parseInt(e.target.value) || pageRange.min)))}
+                    className="range-number"
+                  />
+                </div>
+                <div className="range-input">
+                  <label>Max:</label>
+                  <input
+                    type="number"
+                    min={pageRange.min}
+                    max={pageRange.max}
+                    value={maxPage}
+                    onChange={(e) => setMaxPage(Math.max(pageRange.min, Math.min(pageRange.max, parseInt(e.target.value) || pageRange.max)))}
+                    className="range-number"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="filter-section">
+              <label className="filter-section-label">
+                Confidence: {minConfidence}% - {maxConfidence}%
+              </label>
+              <div className="confidence-sliders">
+                <div className="slider-group">
+                  <label>Min: {minConfidence}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={minConfidence}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      setMinConfidence(val);
+                      if (val > maxConfidence) setMaxConfidence(val);
+                    }}
+                    className="confidence-slider"
+                  />
+                </div>
+                <div className="slider-group">
+                  <label>Max: {maxConfidence}%</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={maxConfidence}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      setMaxConfidence(val);
+                      if (val < minConfidence) setMinConfidence(val);
+                    }}
+                    className="confidence-slider"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {searchQuery && (
           <div className="search-results">
             Found {filteredMatches.length} match{filteredMatches.length !== 1 ? 'es' : ''}
@@ -267,6 +376,133 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
           font-weight: 600;
           color: #333;
           font-size: 0.95rem;
+        }
+
+        .advanced-filters-btn {
+          padding: 0.625rem 1rem;
+          background: rgba(102, 126, 234, 0.1);
+          border: 2px solid rgba(102, 126, 234, 0.3);
+          border-radius: 12px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #667eea;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .advanced-filters-btn:hover {
+          background: rgba(102, 126, 234, 0.2);
+          transform: translateY(-2px);
+        }
+
+        .advanced-filters {
+          margin-top: 1.5rem;
+          padding: 1.5rem;
+          background: rgba(102, 126, 234, 0.05);
+          border-radius: 12px;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+          animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            max-height: 0;
+          }
+          to {
+            opacity: 1;
+            max-height: 500px;
+          }
+        }
+
+        .filter-section {
+          margin-bottom: 1.5rem;
+        }
+
+        .filter-section:last-child {
+          margin-bottom: 0;
+        }
+
+        .filter-section-label {
+          display: block;
+          font-weight: 700;
+          color: #667eea;
+          margin-bottom: 0.75rem;
+          font-size: 0.95rem;
+        }
+
+        .range-inputs {
+          display: flex;
+          gap: 1rem;
+        }
+
+        .range-input {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .range-input label {
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: #666;
+        }
+
+        .range-number {
+          padding: 0.5rem;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          border-radius: 8px;
+          font-size: 0.9rem;
+          width: 80px;
+          background: rgba(255, 255, 255, 0.9);
+        }
+
+        .confidence-sliders {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .slider-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .slider-group label {
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: #666;
+        }
+
+        .confidence-slider {
+          width: 100%;
+          height: 6px;
+          border-radius: 3px;
+          background: rgba(102, 126, 234, 0.2);
+          outline: none;
+          -webkit-appearance: none;
+        }
+
+        .confidence-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+        }
+
+        .confidence-slider::-moz-range-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
         }
 
         .select-input {
