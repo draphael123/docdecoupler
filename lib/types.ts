@@ -94,6 +94,18 @@ export interface DocumentSelection {
   includePageNumbers: boolean;
   includeSourceInfo: boolean;
   documentTitle?: string;
+  // Hide/Remove options
+  hideExactMatches?: boolean;        // Hide exact matches even if shared is included
+  hideFuzzyMatches?: boolean;        // Hide fuzzy matches even if shared is included
+  hideLowConfidence?: boolean;       // Hide matches below confidence threshold
+  confidenceThreshold?: number;     // Minimum confidence (0-1)
+  hideUserOverrides?: boolean;       // Hide matches with user overrides
+  hideSectionHeaders?: boolean;      // Hide section headers (Shared, Unique A, etc.)
+  hideFooters?: boolean;             // Hide page footers
+  hideEmptySections?: boolean;         // Hide sections with no content
+  onlyShowUnique?: boolean;          // Only show unique content (hide all shared)
+  onlyShowShared?: boolean;          // Only show shared content (hide all unique)
+  hideSourceInfo?: boolean;         // Hide source information section
 }
 
 export interface DocumentContent {

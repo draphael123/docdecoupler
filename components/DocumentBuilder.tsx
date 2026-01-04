@@ -19,6 +19,17 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
     includePageNumbers: true,
     includeSourceInfo: true,
     documentTitle: '',
+    hideExactMatches: false,
+    hideFuzzyMatches: false,
+    hideLowConfidence: false,
+    confidenceThreshold: 0.65,
+    hideUserOverrides: false,
+    hideSectionHeaders: false,
+    hideFooters: false,
+    hideEmptySections: true,
+    onlyShowUnique: false,
+    onlyShowShared: false,
+    hideSourceInfo: false,
   });
 
   const [documentType, setDocumentType] = useState<'pdf' | 'text'>('pdf');
@@ -162,7 +173,7 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
 
         {/* Options */}
         <div className="builder-section">
-          <label className="section-label">Options</label>
+          <label className="section-label">Display Options</label>
           <div className="checkbox-group">
             <label className="checkbox-option">
               <input
@@ -176,11 +187,181 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
             <label className="checkbox-option">
               <input
                 type="checkbox"
-                checked={selection.includeSourceInfo}
-                onChange={() => handleToggle('includeSourceInfo')}
+                checked={selection.includeSourceInfo && !selection.hideSourceInfo}
+                onChange={() => {
+                  setSelection(prev => ({
+                    ...prev,
+                    includeSourceInfo: !prev.includeSourceInfo,
+                    hideSourceInfo: prev.includeSourceInfo ? true : prev.hideSourceInfo,
+                  }));
+                }}
               />
               <span>Include source information</span>
             </label>
+          </div>
+        </div>
+
+        {/* Hide/Remove Options */}
+        <div className="builder-section hide-options">
+          <label className="section-label">
+            🎯 Hide/Remove Options
+            <span className="section-hint">Control what to exclude from the generated document</span>
+          </label>
+          
+          <div className="hide-options-grid">
+            {/* Quick Filters */}
+            <div className="hide-subsection">
+              <h4 className="subsection-title">Quick Filters</h4>
+              <div className="checkbox-group">
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selection.onlyShowUnique || false}
+                    onChange={() => {
+                      setSelection(prev => ({
+                        ...prev,
+                        onlyShowUnique: !prev.onlyShowUnique,
+                        onlyShowShared: false,
+                        includeShared: prev.onlyShowUnique ? true : prev.includeShared,
+                      }));
+                    }}
+                  />
+                  <span>Only show unique content (hide all shared)</span>
+                </label>
+
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selection.onlyShowShared || false}
+                    onChange={() => {
+                      setSelection(prev => ({
+                        ...prev,
+                        onlyShowShared: !prev.onlyShowShared,
+                        onlyShowUnique: false,
+                        includeUniqueA: prev.onlyShowShared ? false : prev.includeUniqueA,
+                        includeUniqueB: prev.onlyShowShared ? false : prev.includeUniqueB,
+                      }));
+                    }}
+                  />
+                  <span>Only show shared content (hide all unique)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Match Type Filters */}
+            {selection.includeShared && (
+              <div className="hide-subsection">
+                <h4 className="subsection-title">Filter Match Types</h4>
+                <div className="checkbox-group">
+                  <label className="checkbox-option">
+                    <input
+                      type="checkbox"
+                      checked={selection.hideExactMatches || false}
+                      onChange={() => handleToggle('hideExactMatches')}
+                    />
+                    <span>Hide exact matches</span>
+                  </label>
+
+                  <label className="checkbox-option">
+                    <input
+                      type="checkbox"
+                      checked={selection.hideFuzzyMatches || false}
+                      onChange={() => handleToggle('hideFuzzyMatches')}
+                    />
+                    <span>Hide fuzzy matches</span>
+                  </label>
+
+                  <label className="checkbox-option">
+                    <input
+                      type="checkbox"
+                      checked={selection.hideUserOverrides || false}
+                      onChange={() => handleToggle('hideUserOverrides')}
+                    />
+                    <span>Hide user overrides</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Confidence Filter */}
+            {selection.includeShared && (
+              <div className="hide-subsection">
+                <h4 className="subsection-title">Confidence Filter</h4>
+                <div className="checkbox-group">
+                  <label className="checkbox-option">
+                    <input
+                      type="checkbox"
+                      checked={selection.hideLowConfidence || false}
+                      onChange={() => handleToggle('hideLowConfidence')}
+                    />
+                    <span>Hide low confidence matches</span>
+                  </label>
+                </div>
+                {selection.hideLowConfidence && (
+                  <div className="slider-group">
+                    <label className="slider-label">
+                      Minimum confidence: {Math.round((selection.confidenceThreshold || 0.65) * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={(selection.confidenceThreshold || 0.65) * 100}
+                      onChange={(e) => {
+                        setSelection(prev => ({
+                          ...prev,
+                          confidenceThreshold: parseInt(e.target.value) / 100,
+                        }));
+                      }}
+                      className="confidence-slider"
+                    />
+                    <div className="slider-values">
+                      <span>0%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Formatting Options */}
+            <div className="hide-subsection">
+              <h4 className="subsection-title">Formatting Options</h4>
+              <div className="checkbox-group">
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selection.hideSectionHeaders || false}
+                    onChange={() => handleToggle('hideSectionHeaders')}
+                  />
+                  <span>Hide section headers</span>
+                </label>
+
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selection.hideFooters || false}
+                    onChange={() => handleToggle('hideFooters')}
+                  />
+                  <span>Hide page footers</span>
+                </label>
+
+                <label className="checkbox-option">
+                  <input
+                    type="checkbox"
+                    checked={selection.hideSourceInfo || false}
+                    onChange={() => {
+                      setSelection(prev => ({
+                        ...prev,
+                        hideSourceInfo: !prev.hideSourceInfo,
+                        includeSourceInfo: prev.hideSourceInfo ? true : prev.includeSourceInfo,
+                      }));
+                    }}
+                  />
+                  <span>Hide source information section</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -446,6 +627,99 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
           color: #e67e22;
           font-size: 0.9rem;
           text-align: center;
+        }
+
+        .hide-options {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+          padding: 1.5rem;
+          border-radius: 12px;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .section-hint {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 400;
+          color: #666;
+          margin-top: 0.25rem;
+        }
+
+        .hide-options-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .hide-subsection {
+          background: rgba(255, 255, 255, 0.6);
+          padding: 1rem;
+          border-radius: 8px;
+          border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .subsection-title {
+          margin: 0 0 0.75rem 0;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .slider-group {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .slider-label {
+          display: block;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 0.5rem;
+        }
+
+        .confidence-slider {
+          width: 100%;
+          height: 6px;
+          border-radius: 3px;
+          background: rgba(102, 126, 234, 0.2);
+          outline: none;
+          -webkit-appearance: none;
+          margin: 0.5rem 0;
+        }
+
+        .confidence-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+        }
+
+        .confidence-slider::-moz-range-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+        }
+
+        .slider-values {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.75rem;
+          color: #666;
+          margin-top: 0.25rem;
         }
 
         @media (max-width: 768px) {
