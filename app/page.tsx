@@ -138,42 +138,92 @@ export default function Home() {
       <style jsx>{`
         .main-container {
           min-height: 100vh;
-          background: linear-gradient(to bottom, #f5f7fa 0%, #c3cfe2 100%);
           padding: 2rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .main-container::before {
+          content: '';
+          position: fixed;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+          background-size: 50px 50px;
+          animation: float 20s linear infinite;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        @keyframes float {
+          0% {
+            transform: translate(0, 0);
+          }
+          100% {
+            transform: translate(50px, 50px);
+          }
         }
 
         .app-header {
           text-align: center;
           margin-bottom: 3rem;
+          position: relative;
+          z-index: 1;
+          animation: fadeIn 0.8s ease-out;
         }
 
         .app-title {
-          font-size: 3rem;
-          font-weight: 800;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          font-size: 4rem;
+          font-weight: 900;
+          background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%);
+          background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           margin: 0 0 0.5rem 0;
+          text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+          animation: shimmer 3s linear infinite;
+          letter-spacing: -0.02em;
+          position: relative;
+        }
+
+        .app-title::after {
+          content: '📄';
+          display: inline-block;
+          margin-left: 1rem;
+          animation: pulse 2s ease-in-out infinite;
+          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
         }
 
         .app-subtitle {
-          font-size: 1.1rem;
-          color: #666;
+          font-size: 1.2rem;
+          color: rgba(255, 255, 255, 0.95);
           margin: 0;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+          font-weight: 500;
+          letter-spacing: 0.02em;
         }
 
         .content {
           max-width: 1200px;
           margin: 0 auto;
+          position: relative;
+          z-index: 1;
         }
 
         .error-container {
-          background: white;
-          border-radius: 12px;
-          padding: 2rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 20px;
+          padding: 2.5rem;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                      0 0 0 1px rgba(255, 255, 255, 0.5);
           text-align: center;
+          animation: fadeIn 0.5s ease-out;
+          border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .error-container h2 {
@@ -188,18 +238,41 @@ export default function Home() {
 
         .retry-button {
           padding: 0.75rem 2rem;
-          background: #0070f3;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
-          border-radius: 8px;
+          border-radius: 12px;
           font-size: 1rem;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .retry-button::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          transition: left 0.5s;
         }
 
         .retry-button:hover {
-          background: #0051cc;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .retry-button:hover::before {
+          left: 100%;
+        }
+
+        .retry-button:active {
+          transform: translateY(0);
         }
 
         @media (max-width: 768px) {

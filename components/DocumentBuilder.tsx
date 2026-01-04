@@ -228,23 +228,48 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
 
       <style jsx>{`
         .document-builder {
-          background: white;
-          border-radius: 12px;
-          padding: 2rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 2.5rem;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                      0 0 0 1px rgba(255, 255, 255, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.3);
           margin-top: 2rem;
+          animation: fadeIn 0.6s ease-out;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .document-builder::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+          background-size: 200% 100%;
+          animation: shimmer 3s linear infinite;
         }
 
         .builder-header {
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 2px solid #f0f0f0;
+          margin-bottom: 2rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+          position: relative;
+          z-index: 1;
         }
 
         .builder-header h2 {
           margin: 0 0 0.5rem 0;
-          color: #333;
-          font-size: 1.5rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          font-size: 1.75rem;
+          font-weight: 800;
         }
 
         .builder-subtitle {
@@ -272,17 +297,20 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
         }
 
         .title-input {
-          padding: 0.75rem;
-          border: 1px solid #ddd;
-          border-radius: 6px;
+          padding: 0.875rem 1rem;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          border-radius: 12px;
           font-size: 0.95rem;
           font-family: inherit;
+          background: rgba(255, 255, 255, 0.9);
+          transition: all 0.3s ease;
         }
 
         .title-input:focus {
           outline: none;
-          border-color: #0070f3;
-          box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+          border-color: #667eea;
+          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+          background: rgba(255, 255, 255, 1);
         }
 
         .radio-group,
@@ -298,14 +326,18 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
           align-items: center;
           gap: 0.75rem;
           cursor: pointer;
-          padding: 0.75rem;
-          border-radius: 6px;
-          transition: background 0.2s;
+          padding: 1rem;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+          background: rgba(255, 255, 255, 0.6);
+          border: 2px solid rgba(102, 126, 234, 0.1);
         }
 
         .radio-option:hover,
         .checkbox-option:hover {
-          background: #f8f9fa;
+          background: rgba(102, 126, 234, 0.05);
+          border-color: rgba(102, 126, 234, 0.3);
+          transform: translateX(4px);
         }
 
         .radio-option input,
@@ -334,48 +366,79 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
         .preview-stats {
           display: flex;
           gap: 1.5rem;
-          padding: 1rem;
-          background: #f8f9fa;
-          border-radius: 8px;
+          padding: 1.5rem;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+          border-radius: 16px;
           flex-wrap: wrap;
+          border: 1px solid rgba(102, 126, 234, 0.2);
         }
 
         .stat-item {
           display: flex;
           gap: 0.5rem;
+          align-items: center;
         }
 
         .stat-label {
-          font-weight: 500;
-          color: #666;
+          font-weight: 600;
+          color: #333;
         }
 
         .stat-value {
-          font-weight: 600;
-          color: #0070f3;
+          font-weight: 700;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          font-size: 1.1rem;
         }
 
         .generate-button {
-          padding: 1rem 2rem;
+          padding: 1.25rem 2rem;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
-          border-radius: 8px;
+          border-radius: 16px;
           font-size: 1rem;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+          position: relative;
+          overflow: hidden;
+          letter-spacing: 0.5px;
+        }
+
+        .generate-button::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          transition: left 0.5s;
         }
 
         .generate-button:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+          transform: translateY(-3px);
+          box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .generate-button:hover:not(:disabled)::before {
+          left: 100%;
+        }
+
+        .generate-button:active:not(:disabled) {
+          transform: translateY(-1px);
         }
 
         .generate-button:disabled {
-          background: #ccc;
+          background: linear-gradient(135deg, #ccc 0%, #aaa 100%);
           cursor: not-allowed;
           transform: none;
+          box-shadow: none;
+          opacity: 0.6;
         }
 
         .warning-text {

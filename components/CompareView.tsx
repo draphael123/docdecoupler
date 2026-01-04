@@ -76,62 +76,98 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
 
       <style jsx>{`
         .compare-container {
-          background: white;
-          border-radius: 12px;
-          padding: 2rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 2.5rem;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                      0 0 0 1px rgba(255, 255, 255, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          animation: fadeIn 0.6s ease-out;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .compare-container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+          background-size: 200% 100%;
+          animation: shimmer 3s linear infinite;
         }
 
         .compare-header {
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 2px solid #f0f0f0;
+          margin-bottom: 2rem;
+          padding-bottom: 1.5rem;
+          border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+          position: relative;
+          z-index: 1;
         }
 
         .compare-header h2 {
-          margin: 0 0 1rem 0;
-          color: #333;
-          font-size: 1.5rem;
+          margin: 0 0 1.5rem 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          font-size: 1.75rem;
+          font-weight: 800;
         }
 
         .controls {
           display: flex;
-          gap: 1rem;
+          gap: 1.5rem;
           flex-wrap: wrap;
         }
 
         .filter-group {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.75rem;
         }
 
         .filter-group label {
-          font-weight: 500;
-          color: #666;
-          font-size: 0.9rem;
+          font-weight: 600;
+          color: #333;
+          font-size: 0.95rem;
         }
 
         .select-input {
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 6px;
+          padding: 0.625rem 1rem;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          border-radius: 12px;
           font-size: 0.9rem;
-          background: white;
+          background: rgba(255, 255, 255, 0.9);
           cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .select-input:hover {
+          border-color: rgba(102, 126, 234, 0.4);
+          background: rgba(255, 255, 255, 1);
         }
 
         .select-input:focus {
           outline: none;
-          border-color: #0070f3;
+          border-color: #667eea;
+          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+          background: rgba(255, 255, 255, 1);
         }
 
         .matches-list {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 1.5rem;
           max-height: 600px;
           overflow-y: auto;
+          padding-right: 0.5rem;
+          position: relative;
+          z-index: 1;
         }
 
         @media (max-width: 768px) {
@@ -210,80 +246,126 @@ function MatchCard({ match, onOverride }: MatchCardProps) {
 
       <style jsx>{`
         .match-card {
-          border: 1px solid #e0e0e0;
-          border-radius: 8px;
-          padding: 1rem;
-          background: #fafafa;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          border-radius: 16px;
+          padding: 1.5rem;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: slideIn 0.4s ease-out;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .match-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.3s ease;
+        }
+
+        .match-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2);
+          border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .match-card:hover::before {
+          transform: scaleX(1);
         }
 
         .match-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1rem;
+          margin-bottom: 1.25rem;
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.75rem;
         }
 
         .match-meta {
           display: flex;
           gap: 0.75rem;
           align-items: center;
+          flex-wrap: wrap;
         }
 
         .badge {
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
+          padding: 0.375rem 0.875rem;
+          border-radius: 20px;
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 700;
           text-transform: uppercase;
+          letter-spacing: 0.5px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .badge.exact {
-          background: #d4edda;
-          color: #155724;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: white;
         }
 
         .badge.fuzzy {
-          background: #fff3cd;
-          color: #856404;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: white;
         }
 
         .confidence {
-          font-size: 0.85rem;
-          color: #666;
-          font-weight: 500;
+          font-size: 0.9rem;
+          color: #333;
+          font-weight: 600;
+          padding: 0.375rem 0.875rem;
+          background: rgba(102, 126, 234, 0.1);
+          border-radius: 20px;
         }
 
         .override-badge {
-          padding: 0.25rem 0.75rem;
-          background: #e3f2fd;
-          color: #1565c0;
-          border-radius: 12px;
+          padding: 0.375rem 0.875rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-radius: 20px;
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 700;
+          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .match-content {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 1rem;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
         }
 
         .doc-section {
-          background: white;
-          border-radius: 6px;
-          padding: 1rem;
-          border-left: 3px solid #ccc;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 12px;
+          padding: 1.25rem;
+          border-left: 4px solid #ccc;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+        }
+
+        .doc-section:hover {
+          transform: translateX(4px);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .doc-section.doc-a {
-          border-left-color: #0070f3;
+          border-left-color: #667eea;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(255, 255, 255, 0.8) 100%);
         }
 
         .doc-section.doc-b {
-          border-left-color: #ff6b6b;
+          border-left-color: #f093fb;
+          background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(255, 255, 255, 0.8) 100%);
         }
 
         .doc-header {
@@ -314,23 +396,50 @@ function MatchCard({ match, onOverride }: MatchCardProps) {
         }
 
         .action-btn {
-          padding: 0.5rem 1rem;
-          border: 1px solid #ddd;
-          background: white;
-          border-radius: 6px;
-          font-size: 0.85rem;
+          padding: 0.625rem 1.25rem;
+          border: 2px solid rgba(102, 126, 234, 0.3);
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 12px;
+          font-size: 0.875rem;
+          font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          color: #333;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .action-btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+          transition: left 0.5s;
         }
 
         .action-btn:hover {
-          background: #f5f5f5;
+          background: rgba(102, 126, 234, 0.1);
+          border-color: rgba(102, 126, 234, 0.5);
+          transform: translateY(-2px);
+        }
+
+        .action-btn:hover::before {
+          left: 100%;
         }
 
         .action-btn.active {
-          background: #0070f3;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
-          border-color: #0070f3;
+          border-color: transparent;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn.active:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
         @media (max-width: 768px) {

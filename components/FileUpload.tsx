@@ -100,10 +100,37 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
 
       <style jsx>{`
         .upload-container {
-          background: white;
-          border-radius: 12px;
-          padding: 2rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 2.5rem;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                      0 0 0 1px rgba(255, 255, 255, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          animation: fadeIn 0.6s ease-out;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .upload-container::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          right: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+          animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
 
         .upload-grid {
@@ -111,45 +138,84 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
           grid-template-columns: 1fr 1fr;
           gap: 2rem;
           margin-bottom: 1.5rem;
+          position: relative;
+          z-index: 1;
         }
 
         .upload-box {
-          border: 2px dashed #ddd;
-          border-radius: 8px;
-          padding: 1.5rem;
-          transition: border-color 0.2s;
+          border: 3px dashed rgba(102, 126, 234, 0.4);
+          border-radius: 16px;
+          padding: 2rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .upload-box::before {
+          content: '📄';
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          font-size: 2rem;
+          opacity: 0.2;
+          animation: pulse 3s ease-in-out infinite;
         }
 
         .upload-box:hover {
-          border-color: #0070f3;
+          border-color: #667eea;
+          transform: translateY(-4px);
+          box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
         }
 
         .upload-label {
           display: block;
-          font-weight: 600;
-          font-size: 1.1rem;
+          font-weight: 700;
+          font-size: 1.2rem;
           margin-bottom: 1rem;
-          color: #333;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          position: relative;
+          z-index: 1;
         }
 
         .file-input {
           width: 100%;
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
+          padding: 0.75rem 1rem;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          border-radius: 12px;
           font-size: 0.95rem;
+          background: rgba(255, 255, 255, 0.9);
+          transition: all 0.3s ease;
+          position: relative;
+          z-index: 1;
+        }
+
+        .file-input:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+          background: rgba(255, 255, 255, 1);
         }
 
         .file-input:disabled {
-          background: #f5f5f5;
+          background: rgba(245, 245, 245, 0.8);
           cursor: not-allowed;
+          opacity: 0.6;
         }
 
         .file-info {
           margin-top: 1rem;
-          padding: 0.75rem;
-          background: #f8f8f8;
-          border-radius: 4px;
+          padding: 1rem;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+          border-radius: 12px;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+          animation: slideIn 0.3s ease-out;
+          position: relative;
+          z-index: 1;
         }
 
         .file-name {
@@ -172,24 +238,51 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
 
         .submit-button {
           width: 100%;
-          padding: 1rem 2rem;
-          background: #0070f3;
+          padding: 1.25rem 2rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
-          border-radius: 8px;
+          border-radius: 16px;
           font-size: 1.1rem;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+          position: relative;
+          overflow: hidden;
+          z-index: 1;
+          letter-spacing: 0.5px;
+        }
+
+        .submit-button::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          transition: left 0.5s;
         }
 
         .submit-button:hover:not(:disabled) {
-          background: #0051cc;
+          transform: translateY(-3px);
+          box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .submit-button:hover:not(:disabled)::before {
+          left: 100%;
+        }
+
+        .submit-button:active:not(:disabled) {
+          transform: translateY(-1px);
         }
 
         .submit-button:disabled {
-          background: #ccc;
+          background: linear-gradient(135deg, #ccc 0%, #aaa 100%);
           cursor: not-allowed;
+          box-shadow: none;
+          opacity: 0.6;
         }
 
         @media (max-width: 768px) {
