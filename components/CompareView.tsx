@@ -11,6 +11,8 @@ interface CompareViewProps {
 export function CompareView({ matches, onOverride }: CompareViewProps) {
   const [filter, setFilter] = useState<'all' | 'exact' | 'fuzzy'>('all');
   const [sortBy, setSortBy] = useState<'confidence' | 'page'>('confidence');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Filter matches
   let filteredMatches = matches;
@@ -19,6 +21,25 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
   } else if (filter === 'fuzzy') {
     filteredMatches = matches.filter(m => m.matchType === 'fuzzy');
   }
+
+  // Search filter
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
+    filteredMatches = filteredMatches.filter(m => 
+      m.unitA.rawText.toLowerCase().includes(query) ||
+      m.unitB.rawText.toLowerCase().includes(query)
+    );
+  }
+
+  const copyToClipboard = async (text: string, copyId: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(copyId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // Sort matches
   const sortedMatches = [...filteredMatches].sort((a, b) => {
@@ -34,6 +55,24 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
       <div className="compare-header">
         <h2>Matched Content</h2>
         <div className="controls">
+          <div className="search-group">
+            <input
+              type="text"
+              placeholder="🔍 Search matches..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+            {searchQuery && (
+              <button 
+                className="clear-search"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
           <div className="filter-group">
             <label>Filter:</label>
             <select 
@@ -62,16 +101,29 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
             </select>
           </div>
         </div>
+        {searchQuery && (
+          <div className="search-results">
+            Found {filteredMatches.length} match{filteredMatches.length !== 1 ? 'es' : ''}
+          </div>
+        )}
       </div>
 
       <div className="matches-list">
-        {sortedMatches.map((match) => (
-          <MatchCard 
-            key={match.id} 
-            match={match} 
-            onOverride={onOverride}
-          />
-        ))}
+        {sortedMatches.length === 0 ? (
+          <div className="no-results">
+            {searchQuery ? 'No matches found for your search.' : 'No matches to display.'}
+          </div>
+        ) : (
+          sortedMatches.map((match) => (
+            <MatchCard 
+              key={match.id} 
+              match={match} 
+              onOverride={onOverride}
+              onCopy={copyToClipboard}
+              copiedId={copiedId}
+            />
+          ))
+        )}
       </div>
 
       <style jsx>{`
@@ -119,10 +171,64 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
           font-weight: 800;
         }
 
+        .search-results {
+          margin-top: 1rem;
+          padding: 0.75rem 1rem;
+          background: rgba(102, 126, 234, 0.1);
+          border-radius: 8px;
+          color: #667eea;
+          font-weight: 600;
+          font-size: 0.9rem;
+        }
+
         .controls {
           display: flex;
           gap: 1.5rem;
           flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .search-group {
+          position: relative;
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 0.625rem 2.5rem 0.625rem 1rem;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          border-radius: 12px;
+          font-size: 0.9rem;
+          background: rgba(255, 255, 255, 0.9);
+          transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+          background: rgba(255, 255, 255, 1);
+        }
+
+        .clear-search {
+          position: absolute;
+          right: 0.5rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 1rem;
+          color: #666;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          transition: all 0.2s;
+        }
+
+        .clear-search:hover {
+          background: rgba(102, 126, 234, 0.1);
+          color: #667eea;
         }
 
         .filter-group {
@@ -183,9 +289,11 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
 interface MatchCardProps {
   match: Match;
   onOverride: (matchId: string, override: 'shared' | 'unique') => void;
+  onCopy: (text: string, copyId: string) => void;
+  copiedId: string | null;
 }
 
-function MatchCard({ match, onOverride }: MatchCardProps) {
+function MatchCard({ match, onOverride, onCopy, copiedId }: MatchCardProps) {
   const confidencePercent = Math.round(match.confidence * 100);
   const isExact = match.matchType === 'exact';
 
@@ -211,9 +319,19 @@ function MatchCard({ match, onOverride }: MatchCardProps) {
         <div className="doc-section doc-a">
           <div className="doc-header">
             <strong>Document A</strong>
-            <span className="location">
-              Page {match.unitA.pageNumber}, Line {match.unitA.lineNumber}
-            </span>
+            <div className="doc-header-right">
+              <span className="location">
+                Page {match.unitA.pageNumber}, Line {match.unitA.lineNumber}
+              </span>
+              <button
+                className="copy-btn"
+                onClick={() => onCopy(match.unitA.rawText, `${match.id}-a`)}
+                title="Copy text"
+                aria-label="Copy text"
+              >
+                {copiedId === `${match.id}-a` ? '✓' : '📋'}
+              </button>
+            </div>
           </div>
           <div className="text-content">{match.unitA.rawText}</div>
         </div>
@@ -221,9 +339,19 @@ function MatchCard({ match, onOverride }: MatchCardProps) {
         <div className="doc-section doc-b">
           <div className="doc-header">
             <strong>Document B</strong>
-            <span className="location">
-              Page {match.unitB.pageNumber}, Line {match.unitB.lineNumber}
-            </span>
+            <div className="doc-header-right">
+              <span className="location">
+                Page {match.unitB.pageNumber}, Line {match.unitB.lineNumber}
+              </span>
+              <button
+                className="copy-btn"
+                onClick={() => onCopy(match.unitB.rawText, `${match.id}-b`)}
+                title="Copy text"
+                aria-label="Copy text"
+              >
+                {copiedId === `${match.id}-b` ? '✓' : '📋'}
+              </button>
+            </div>
           </div>
           <div className="text-content">{match.unitB.rawText}</div>
         </div>
@@ -371,8 +499,15 @@ function MatchCard({ match, onOverride }: MatchCardProps) {
         .doc-header {
           display: flex;
           justify-content: space-between;
+          align-items: center;
           margin-bottom: 0.5rem;
           font-size: 0.85rem;
+        }
+
+        .doc-header-right {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
         }
 
         .doc-header strong {
@@ -382,6 +517,30 @@ function MatchCard({ match, onOverride }: MatchCardProps) {
         .location {
           color: #666;
           font-size: 0.75rem;
+        }
+
+        .copy-btn {
+          background: rgba(102, 126, 234, 0.1);
+          border: 1px solid rgba(102, 126, 234, 0.2);
+          border-radius: 6px;
+          padding: 0.25rem 0.5rem;
+          cursor: pointer;
+          font-size: 0.75rem;
+          transition: all 0.2s;
+          line-height: 1;
+        }
+
+        .copy-btn:hover {
+          background: rgba(102, 126, 234, 0.2);
+          border-color: rgba(102, 126, 234, 0.4);
+          transform: scale(1.1);
+        }
+
+        .no-results {
+          text-align: center;
+          padding: 3rem;
+          color: #666;
+          font-size: 1.1rem;
         }
 
         .text-content {

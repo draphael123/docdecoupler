@@ -12,6 +12,7 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
   const [fileA, setFileA] = useState<File | null>(null);
   const [fileB, setFileB] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ a?: string; b?: string }>({});
+  const [dragOver, setDragOver] = useState<'A' | 'B' | null>(null);
   
   const inputARef = useRef<HTMLInputElement>(null);
   const inputBRef = useRef<HTMLInputElement>(null);
@@ -44,14 +45,54 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent, docId: 'A' | 'B') => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) setDragOver(docId);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, docId: 'A' | 'B') => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(null);
+    
+    if (disabled) return;
+    
+    const files = Array.from(e.dataTransfer.files);
+    const pdfFile = files.find(f => isPdfFile(f));
+    
+    if (pdfFile) {
+      handleFileChange(docId, pdfFile);
+    } else if (files.length > 0) {
+      setErrors(prev => ({
+        ...prev,
+        [docId.toLowerCase()]: 'Please drop a PDF file',
+      }));
+    }
+  };
+
   const canSubmit = fileA && fileB && !disabled;
 
   return (
     <div className="upload-container">
       <div className="upload-grid">
         {/* Document A Upload */}
-        <div className="upload-box">
-          <label className="upload-label">Document A</label>
+        <div 
+          className={`upload-box ${dragOver === 'A' ? 'drag-over' : ''} ${fileA ? 'has-file' : ''}`}
+          onDragOver={(e) => handleDragOver(e, 'A')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 'A')}
+        >
+          <label className="upload-label">
+            Document A
+            <span className="drag-hint">📁 Drag & drop or click to upload</span>
+          </label>
           <input
             ref={inputARef}
             type="file"
@@ -70,8 +111,16 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
         </div>
 
         {/* Document B Upload */}
-        <div className="upload-box">
-          <label className="upload-label">Document B</label>
+        <div 
+          className={`upload-box ${dragOver === 'B' ? 'drag-over' : ''} ${fileB ? 'has-file' : ''}`}
+          onDragOver={(e) => handleDragOver(e, 'B')}
+          onDragLeave={handleDragLeave}
+          onDrop={(e) => handleDrop(e, 'B')}
+        >
+          <label className="upload-label">
+            Document B
+            <span className="drag-hint">📁 Drag & drop or click to upload</span>
+          </label>
           <input
             ref={inputBRef}
             type="file"
@@ -167,6 +216,27 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
           transform: translateY(-4px);
           box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%);
+        }
+
+        .upload-box.drag-over {
+          border-color: #667eea;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+          transform: scale(1.02);
+          box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-box.has-file {
+          border-color: #10b981;
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(255, 255, 255, 0.8) 100%);
+        }
+
+        .drag-hint {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 400;
+          color: #666;
+          margin-top: 0.5rem;
+          opacity: 0.8;
         }
 
         .upload-label {

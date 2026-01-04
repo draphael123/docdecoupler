@@ -6,10 +6,13 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { ResultsSummary } from '@/components/ResultsSummary';
 import { CompareView } from '@/components/CompareView';
 import { DocumentBuilder } from '@/components/DocumentBuilder';
+import { QuickGuide } from '@/components/QuickGuide';
 import { useWorker } from '@/lib/useWorker';
 import { ProcessingResult } from '@/lib/types';
 import { applyUserOverrides } from '@/lib/match';
 import { generateExportData, downloadJson } from '@/lib/export';
+import { useEffect } from 'react';
+import { getErrorMessage } from '@/lib/errorMessages';
 
 type AppState = 'idle' | 'processing' | 'complete' | 'error';
 
@@ -23,6 +26,41 @@ export default function Home() {
   const [overrides, setOverrides] = useState<Map<string, 'shared' | 'unique'>>(new Map());
 
   const { processFiles } = useWorker();
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + E: Export
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        if (result) {
+          const exportData = generateExportData(result, fileNames.a, fileNames.b);
+          const timestamp = new Date().toISOString().split('T')[0];
+          downloadJson(exportData, `doc-comparison-${timestamp}.json`);
+        }
+      }
+      // Ctrl/Cmd + R: Reset (only if not in input)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r' && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        if (state === 'complete') {
+          setState('idle');
+          setResult(null);
+          setError(null);
+          setProgress(0);
+          setProgressMessage('');
+          setOverrides(new Map());
+          setFileNames({ a: '', b: '' });
+        }
+      }
+      // Esc: Close modals
+      if (e.key === 'Escape') {
+        // Could close any open modals here
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [result, state, fileNames]);
 
   const handleFilesSelected = (fileA: File, fileB: File) => {
     setFileNames({ a: fileA.name, b: fileB.name });
@@ -103,15 +141,22 @@ export default function Home() {
           <ProgressBar progress={progress} message={progressMessage} />
         )}
 
-        {state === 'error' && (
-          <div className="error-container">
-            <h2>Error</h2>
-            <p>{error}</p>
-            <button onClick={handleReset} className="retry-button">
-              Try Again
-            </button>
-          </div>
-        )}
+        {state === 'error' && error && (() => {
+          const errorInfo = getErrorMessage(error);
+          return (
+            <div className="error-container">
+              <div className="error-icon">⚠️</div>
+              <h2>{errorInfo.title}</h2>
+              <p className="error-message">{errorInfo.message}</p>
+              <div className="error-suggestion">
+                <strong>💡 Suggestion:</strong> {errorInfo.suggestion}
+              </div>
+              <button onClick={handleReset} className="retry-button">
+                Try Again
+              </button>
+            </div>
+          );
+        })()}
 
         {state === 'complete' && result && (
           <>
@@ -134,6 +179,8 @@ export default function Home() {
           </>
         )}
       </div>
+
+      <QuickGuide />
 
       <style jsx>{`
         .main-container {
@@ -226,14 +273,37 @@ export default function Home() {
           border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
+        .error-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
         .error-container h2 {
           color: #e00;
           margin: 0 0 1rem 0;
+          font-size: 1.5rem;
         }
 
-        .error-container p {
+        .error-message {
           color: #666;
+          margin: 0 0 1rem 0;
+          font-size: 1rem;
+          line-height: 1.6;
+        }
+
+        .error-suggestion {
+          background: rgba(102, 126, 234, 0.1);
+          border-left: 4px solid #667eea;
+          padding: 1rem;
+          border-radius: 8px;
           margin: 0 0 1.5rem 0;
+          color: #333;
+          line-height: 1.6;
+        }
+
+        .error-suggestion strong {
+          color: #667eea;
         }
 
         .retry-button {
