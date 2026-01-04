@@ -79,12 +79,12 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
       <div className="builder-header">
         <h2>Create New Document</h2>
         <p className="builder-subtitle">
-          Select content to include and choose what to hide/remove from your generated PDF or text file
+          Select content to include in your generated document. Documents are generated in standard format without page numbers or section headers.
         </p>
         <div className="builder-help">
-          <strong>💡 How it works:</strong> First select which content types to include (Shared, Unique A, Unique B). 
-          Then use the hide/remove options below to filter out specific match types, low-confidence matches, 
-          or formatting elements. The preview stats update in real-time to show what will be included.
+          <strong>💡 How it works:</strong> Select which content types to include (Shared, Unique A, Unique B). 
+          Use the hide/remove options to filter content (e.g., exclude low-confidence matches). 
+          The generated document will be a clean, standard document with just the selected text content - no annotations or metadata.
         </div>
       </div>
 
@@ -177,33 +177,10 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
           </div>
         </div>
 
-        {/* Options */}
+        {/* Note about standard format */}
         <div className="builder-section">
-          <label className="section-label">Display Options</label>
-          <div className="checkbox-group">
-            <label className="checkbox-option">
-              <input
-                type="checkbox"
-                checked={selection.includePageNumbers}
-                onChange={() => handleToggle('includePageNumbers')}
-              />
-              <span>Include page numbers</span>
-            </label>
-
-            <label className="checkbox-option">
-              <input
-                type="checkbox"
-                checked={selection.includeSourceInfo && !selection.hideSourceInfo}
-                onChange={() => {
-                  setSelection(prev => ({
-                    ...prev,
-                    includeSourceInfo: !prev.includeSourceInfo,
-                    hideSourceInfo: prev.includeSourceInfo ? true : prev.hideSourceInfo,
-                  }));
-                }}
-              />
-              <span>Include source information</span>
-            </label>
+          <div className="format-notice">
+            <strong>📄 Standard Document Format:</strong> Generated documents are created in standard format without page numbers, section headers, or matching indicators. Only the selected text content is included.
           </div>
         </div>
 
@@ -510,6 +487,21 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
 
         .builder-help strong {
           color: #667eea;
+        }
+
+        .format-notice {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+          border-left: 4px solid #667eea;
+          border-radius: 8px;
+          padding: 1rem;
+          color: #333;
+          line-height: 1.6;
+        }
+
+        .format-notice strong {
+          color: #667eea;
+          display: block;
+          margin-bottom: 0.5rem;
         }
 
         .builder-content {
