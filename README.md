@@ -122,6 +122,44 @@ Works in all modern browsers that support:
 - File API
 - ES2017+
 
+## 🚀 Deployment
+
+### Deploy to GitHub
+
+Your project is ready to push to GitHub at: https://github.com/draphael123/docdecoupler.git
+
+See **DEPLOY_TO_GITHUB.md** for detailed instructions.
+
+Quick push:
+```bash
+cd "C:\Users\danie\OneDrive\Desktop\Cursor Projects\Decouple Project"
+git push -u origin main
+```
+
+### Deploy to Vercel (Recommended)
+
+The easiest way to deploy:
+
+```bash
+npm install -g vercel
+vercel
+```
+
+Or use the Vercel dashboard: https://vercel.com
+
+See **VERCEL_DEPLOY.md** for complete instructions.
+
+## 📚 Documentation
+
+- **QUICKSTART.md** - Get started in 30 seconds
+- **USAGE_GUIDE.md** - Detailed user guide
+- **DEPLOYMENT.md** - Technical deployment guide
+- **DEPLOY_TO_GITHUB.md** - GitHub deployment steps
+- **VERCEL_DEPLOY.md** - Vercel deployment guide
+- **PROJECT_SUMMARY.md** - Complete project overview
+- **FILE_INDEX.md** - File structure reference
+- **STATUS.md** - Current project status
+
 ## License
 
 MIT
