@@ -230,9 +230,14 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
 
       <div className="matches-list">
         {sortedMatches.length === 0 ? (
-          <div className="no-results">
-            {searchQuery ? 'No matches found for your search.' : 'No matches to display.'}
-          </div>
+          <EmptyState
+            type="no-matches"
+            message={searchQuery ? 'No matches found for your search query.' : 'No matches to display.'}
+            action={searchQuery ? {
+              label: 'Clear Search',
+              onClick: () => setSearchQuery('')
+            } : undefined}
+          />
         ) : (
           sortedMatches.map((match) => (
             <MatchCard 
