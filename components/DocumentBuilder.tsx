@@ -371,25 +371,55 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
             <span className="stat-label">Total Lines:</span>
             <span className="stat-value">{stats.totalLines}</span>
           </div>
-          {selection.includeShared && (
+          {selection.includeShared && !selection.onlyShowUnique && (
             <div className="stat-item">
               <span className="stat-label">Shared:</span>
               <span className="stat-value">{stats.sharedLines}</span>
             </div>
           )}
-          {selection.includeUniqueA && (
+          {selection.includeUniqueA && !selection.onlyShowShared && (
             <div className="stat-item">
               <span className="stat-label">Unique A:</span>
               <span className="stat-value">{stats.uniqueALines}</span>
             </div>
           )}
-          {selection.includeUniqueB && (
+          {selection.includeUniqueB && !selection.onlyShowShared && (
             <div className="stat-item">
               <span className="stat-label">Unique B:</span>
               <span className="stat-value">{stats.uniqueBLines}</span>
             </div>
           )}
         </div>
+
+        {/* What Will Be Hidden Summary */}
+        {(() => {
+          const hiddenItems: string[] = [];
+          
+          if (selection.onlyShowUnique) hiddenItems.push('All shared content');
+          if (selection.onlyShowShared) hiddenItems.push('All unique content');
+          if (selection.hideExactMatches && selection.includeShared) hiddenItems.push('Exact matches');
+          if (selection.hideFuzzyMatches && selection.includeShared) hiddenItems.push('Fuzzy matches');
+          if (selection.hideUserOverrides && selection.includeShared) hiddenItems.push('User overrides');
+          if (selection.hideLowConfidence && selection.includeShared) {
+            hiddenItems.push(`Low confidence matches (< ${Math.round((selection.confidenceThreshold || 0.65) * 100)}%)`);
+          }
+          if (selection.hideSectionHeaders) hiddenItems.push('Section headers');
+          if (selection.hideFooters) hiddenItems.push('Page footers');
+          if (selection.hideSourceInfo) hiddenItems.push('Source information');
+          
+          return hiddenItems.length > 0 ? (
+            <div className="hidden-summary">
+              <div className="hidden-summary-header">
+                <strong>🚫 Will be hidden from PDF:</strong>
+              </div>
+              <ul className="hidden-list">
+                {hiddenItems.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null;
+        })()}
 
         {/* Generate Button */}
         <button
@@ -720,6 +750,43 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
           font-size: 0.75rem;
           color: #666;
           margin-top: 0.25rem;
+        }
+
+        .hidden-summary {
+          margin-top: 1.5rem;
+          padding: 1.25rem;
+          background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(192, 57, 43, 0.1) 100%);
+          border-left: 4px solid #e74c3c;
+          border-radius: 12px;
+          animation: slideIn 0.3s ease-out;
+        }
+
+        .hidden-summary-header {
+          margin-bottom: 0.75rem;
+          color: #e74c3c;
+          font-size: 0.95rem;
+        }
+
+        .hidden-list {
+          margin: 0;
+          padding-left: 1.5rem;
+          list-style: none;
+        }
+
+        .hidden-list li {
+          margin-bottom: 0.5rem;
+          color: #666;
+          font-size: 0.9rem;
+          position: relative;
+          padding-left: 1.5rem;
+        }
+
+        .hidden-list li::before {
+          content: '✕';
+          position: absolute;
+          left: 0;
+          color: #e74c3c;
+          font-weight: bold;
         }
 
         @media (max-width: 768px) {
