@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ResultsSummary } from '@/components/ResultsSummary';
@@ -40,6 +40,32 @@ export default function Home() {
     const theme = getTheme();
     applyTheme(theme);
   }, []);
+
+  const handleUndo = useCallback(() => {
+    if (!overrideHistory || !canUndo(overrideHistory)) return;
+    const previous = undo(overrideHistory);
+    if (previous) {
+      setOverrideHistory(previous);
+      setOverrides(previous.present);
+      if (result) {
+        const updatedResult = applyUserOverrides(result, previous.present);
+        setResult(updatedResult);
+      }
+    }
+  }, [overrideHistory, result]);
+
+  const handleRedo = useCallback(() => {
+    if (!overrideHistory || !canRedo(overrideHistory)) return;
+    const next = redo(overrideHistory);
+    if (next) {
+      setOverrideHistory(next);
+      setOverrides(next.present);
+      if (result) {
+        const updatedResult = applyUserOverrides(result, next.present);
+        setResult(updatedResult);
+      }
+    }
+  }, [overrideHistory, result]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -146,31 +172,6 @@ export default function Home() {
     }
   };
 
-  const handleUndo = () => {
-    if (!overrideHistory || !canUndo(overrideHistory)) return;
-    const previous = undo(overrideHistory);
-    if (previous) {
-      setOverrideHistory(previous);
-      setOverrides(previous.present);
-      if (result) {
-        const updatedResult = applyUserOverrides(result, previous.present);
-        setResult(updatedResult);
-      }
-    }
-  };
-
-  const handleRedo = () => {
-    if (!overrideHistory || !canRedo(overrideHistory)) return;
-    const next = redo(overrideHistory);
-    if (next) {
-      setOverrideHistory(next);
-      setOverrides(next.present);
-      if (result) {
-        const updatedResult = applyUserOverrides(result, next.present);
-        setResult(updatedResult);
-      }
-    }
-  };
 
   const handleExport = () => {
     if (!result) return;
