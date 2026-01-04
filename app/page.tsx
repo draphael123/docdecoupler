@@ -8,12 +8,17 @@ import { CompareView } from '@/components/CompareView';
 import { DocumentBuilder } from '@/components/DocumentBuilder';
 import { QuickGuide } from '@/components/QuickGuide';
 import { InfoBanner } from '@/components/InfoBanner';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useWorker } from '@/lib/useWorker';
+import { useEffect } from 'react';
+import { applyTheme, getTheme } from '@/lib/theme';
 import { ProcessingResult } from '@/lib/types';
 import { applyUserOverrides } from '@/lib/match';
 import { generateExportData, downloadJson } from '@/lib/export';
-import { useEffect } from 'react';
 import { getErrorMessage } from '@/lib/errorMessages';
+import { saveComparison } from '@/lib/sessionStorage';
+import { createHistory, addToHistory, undo, redo, canUndo, canRedo, type HistoryState } from '@/lib/history';
+import { ComparisonHistory } from '@/components/ComparisonHistory';
 
 type AppState = 'idle' | 'processing' | 'complete' | 'error';
 
@@ -25,8 +30,16 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [fileNames, setFileNames] = useState({ a: '', b: '' });
   const [overrides, setOverrides] = useState<Map<string, 'shared' | 'unique'>>(new Map());
+  const [overrideHistory, setOverrideHistory] = useState<HistoryState<Map<string, 'shared' | 'unique'>> | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { processFiles } = useWorker();
+
+  // Initialize theme
+  useEffect(() => {
+    const theme = getTheme();
+    applyTheme(theme);
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -50,18 +63,34 @@ export default function Home() {
           setProgress(0);
           setProgressMessage('');
           setOverrides(new Map());
+          setOverrideHistory(null);
           setFileNames({ a: '', b: '' });
         }
       }
+      // Ctrl/Cmd + Z: Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Ctrl/Cmd + Shift + Z: Redo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        handleRedo();
+      }
+      // Ctrl/Cmd + H: History
+      if ((e.ctrlKey || e.metaKey) && e.key === 'h' && !(e.target instanceof HTMLInputElement)) {
+        e.preventDefault();
+        setHistoryOpen(true);
+      }
       // Esc: Close modals
       if (e.key === 'Escape') {
-        // Could close any open modals here
+        setHistoryOpen(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [result, state, fileNames]);
+  }, [result, state, fileNames, handleUndo, handleRedo]);
 
   const handleFilesSelected = (fileA: File, fileB: File) => {
     setFileNames({ a: fileA.name, b: fileB.name });
@@ -79,6 +108,9 @@ export default function Home() {
       (result) => {
         setResult(result);
         setState('complete');
+        setOverrideHistory(createHistory(new Map()));
+        // Auto-save comparison
+        saveComparison(result, fileNames, new Map());
       },
       (error) => {
         setError(error);
@@ -97,12 +129,46 @@ export default function Home() {
       newOverrides.set(matchId, override);
     }
     
+    // Update history
+    if (overrideHistory) {
+      const updatedHistory = addToHistory(overrideHistory, newOverrides);
+      setOverrideHistory(updatedHistory);
+    } else {
+      setOverrideHistory(createHistory(newOverrides));
+    }
+    
     setOverrides(newOverrides);
 
     // Apply overrides to result
     if (result) {
       const updatedResult = applyUserOverrides(result, newOverrides);
       setResult(updatedResult);
+    }
+  };
+
+  const handleUndo = () => {
+    if (!overrideHistory || !canUndo(overrideHistory)) return;
+    const previous = undo(overrideHistory);
+    if (previous) {
+      setOverrideHistory(previous);
+      setOverrides(previous.present);
+      if (result) {
+        const updatedResult = applyUserOverrides(result, previous.present);
+        setResult(updatedResult);
+      }
+    }
+  };
+
+  const handleRedo = () => {
+    if (!overrideHistory || !canRedo(overrideHistory)) return;
+    const next = redo(overrideHistory);
+    if (next) {
+      setOverrideHistory(next);
+      setOverrides(next.present);
+      if (result) {
+        const updatedResult = applyUserOverrides(result, next.present);
+        setResult(updatedResult);
+      }
     }
   };
 
@@ -127,10 +193,16 @@ export default function Home() {
   return (
     <main className="main-container">
       <header className="app-header">
-        <h1 className="app-title">Doc Decoupler</h1>
-        <p className="app-subtitle">
-          Compare two PDF documents and identify shared vs. unique content
-        </p>
+        <div className="header-top">
+          <div>
+            <h1 className="app-title">Doc Decoupler</h1>
+            <p className="app-subtitle">
+              Compare two PDF documents and identify shared vs. unique content
+            </p>
+          </div>
+          <ThemeToggle />
+        </div>
+        <QuickGuide />
       </header>
 
       <div className="content">
@@ -164,12 +236,17 @@ export default function Home() {
 
         {state === 'complete' && result && (
           <>
-            <ResultsSummary
-              result={result}
+            <ResultsSummary 
+              result={result} 
               docAName={fileNames.a}
               docBName={fileNames.b}
               onExport={handleExport}
               onReset={handleReset}
+              onHistory={() => setHistoryOpen(true)}
+              canUndo={overrideHistory ? canUndo(overrideHistory) : false}
+              canRedo={overrideHistory ? canRedo(overrideHistory) : false}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
             />
             <DocumentBuilder
               result={result}
@@ -183,6 +260,18 @@ export default function Home() {
           </>
         )}
       </div>
+
+      <ComparisonHistory
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onLoad={(result, fileNames, overrides) => {
+          setResult(result);
+          setFileNames(fileNames);
+          setOverrides(overrides || new Map());
+          setOverrideHistory(overrides ? createHistory(overrides) : createHistory(new Map()));
+          setState('complete');
+        }}
+      />
 
       <QuickGuide />
 
@@ -223,6 +312,21 @@ export default function Home() {
           position: relative;
           z-index: 1;
           animation: fadeIn 0.8s ease-out;
+        }
+
+        .header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 2rem;
+          margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+          .header-top {
+            flex-direction: column;
+            align-items: center;
+          }
         }
 
         .app-title {

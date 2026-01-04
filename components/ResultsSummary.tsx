@@ -9,6 +9,11 @@ interface ResultsSummaryProps {
   docBName: string;
   onExport: () => void;
   onReset: () => void;
+  onHistory?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
 export function ResultsSummary({ 
@@ -16,7 +21,12 @@ export function ResultsSummary({
   docAName, 
   docBName, 
   onExport, 
-  onReset 
+  onReset,
+  onHistory,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
 }: ResultsSummaryProps) {
   const exactMatches = result.matches.filter(m => m.matchType === 'exact').length;
   const fuzzyMatches = result.matches.filter(m => m.matchType === 'fuzzy').length;
@@ -27,6 +37,31 @@ export function ResultsSummary({
       <div className="summary-header">
         <h1>Comparison Results</h1>
         <div className="action-buttons">
+          {(onUndo || onRedo) && (
+            <div className="undo-redo-buttons">
+              <button 
+                onClick={onUndo} 
+                className="undo-btn"
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+              >
+                ↶ Undo
+              </button>
+              <button 
+                onClick={onRedo} 
+                className="redo-btn"
+                disabled={!canRedo}
+                title="Redo (Ctrl+Shift+Z)"
+              >
+                ↷ Redo
+              </button>
+            </div>
+          )}
+          {onHistory && (
+            <button onClick={onHistory} className="history-btn" title="View History (Ctrl+H)">
+              📚 History
+            </button>
+          )}
           <button onClick={onExport} className="export-btn">
             Export JSON
           </button>
@@ -134,6 +169,37 @@ export function ResultsSummary({
         .action-buttons {
           display: flex;
           gap: 0.75rem;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .undo-redo-buttons {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .undo-btn, .redo-btn, .history-btn {
+          padding: 0.75rem 1.25rem;
+          border: none;
+          border-radius: 10px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          background: rgba(102, 126, 234, 0.1);
+          color: #667eea;
+          border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .undo-btn:hover:not(:disabled), .redo-btn:hover:not(:disabled), .history-btn:hover {
+          background: rgba(102, 126, 234, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .undo-btn:disabled, .redo-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
         }
 
         .export-btn, .reset-btn {
