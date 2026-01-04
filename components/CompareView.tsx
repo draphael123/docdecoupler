@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Match } from '@/lib/types';
 import { TipsPanel } from './TipsPanel';
+import { EmptyState } from './EmptyState';
 
 interface CompareViewProps {
   matches: Match[];
