@@ -7,6 +7,7 @@ import { ResultsSummary } from '@/components/ResultsSummary';
 import { CompareView } from '@/components/CompareView';
 import { DocumentBuilder } from '@/components/DocumentBuilder';
 import { QuickGuide } from '@/components/QuickGuide';
+import { InfoBanner } from '@/components/InfoBanner';
 import { useWorker } from '@/lib/useWorker';
 import { ProcessingResult } from '@/lib/types';
 import { applyUserOverrides } from '@/lib/match';
@@ -134,7 +135,10 @@ export default function Home() {
 
       <div className="content">
         {state === 'idle' && (
-          <FileUpload onFilesSelected={handleFilesSelected} />
+          <>
+            <InfoBanner type="info" />
+            <FileUpload onFilesSelected={handleFilesSelected} />
+          </>
         )}
 
         {state === 'processing' && (

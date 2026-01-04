@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Match } from '@/lib/types';
+import { TipsPanel } from './TipsPanel';
 
 interface CompareViewProps {
   matches: Match[];
@@ -53,7 +54,15 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
   return (
     <div className="compare-container">
       <div className="compare-header">
-        <h2>Matched Content</h2>
+        <div className="header-top">
+          <h2>Matched Content</h2>
+          <div className="header-help">
+            <span className="help-text">
+              💡 Each match shows content from both documents side-by-side. 
+              Use filters and search to find specific content. Click 📋 to copy text.
+            </span>
+          </div>
+        </div>
         <div className="controls">
           <div className="search-group">
             <input
@@ -108,6 +117,8 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
         )}
       </div>
 
+      <TipsPanel context="compare" />
+
       <div className="matches-list">
         {sortedMatches.length === 0 ? (
           <div className="no-results">
@@ -161,14 +172,29 @@ export function CompareView({ matches, onOverride }: CompareViewProps) {
           z-index: 1;
         }
 
+        .header-top {
+          margin-bottom: 1.5rem;
+        }
+
         .compare-header h2 {
-          margin: 0 0 1.5rem 0;
+          margin: 0 0 0.75rem 0;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           font-size: 1.75rem;
           font-weight: 800;
+        }
+
+        .header-help {
+          margin-top: 0.5rem;
+        }
+
+        .help-text {
+          font-size: 0.85rem;
+          color: #666;
+          line-height: 1.5;
+          display: block;
         }
 
         .search-results {

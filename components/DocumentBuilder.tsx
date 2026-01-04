@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ProcessingResult } from '@/lib/types';
 import { DocumentSelection } from '@/lib/types';
 import { generateDocument, generateTextDocument, getContentStats } from '@/lib/documentGenerator';
+import { TipsPanel } from './TipsPanel';
 
 interface DocumentBuilderProps {
   result: ProcessingResult;
@@ -78,8 +79,13 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
       <div className="builder-header">
         <h2>Create New Document</h2>
         <p className="builder-subtitle">
-          Select content to include in your new document
+          Select content to include and choose what to hide/remove from your generated PDF or text file
         </p>
+        <div className="builder-help">
+          <strong>💡 How it works:</strong> First select which content types to include (Shared, Unique A, Unique B). 
+          Then use the hide/remove options below to filter out specific match types, low-confidence matches, 
+          or formatting elements. The preview stats update in real-time to show what will be included.
+        </div>
       </div>
 
       <div className="builder-content">
@@ -435,6 +441,8 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
             ⚠️ Please select at least one content type to include.
           </p>
         )}
+
+        <TipsPanel context="builder" />
       </div>
 
       <style jsx>{`
@@ -484,9 +492,24 @@ export function DocumentBuilder({ result, docAName, docBName }: DocumentBuilderP
         }
 
         .builder-subtitle {
-          margin: 0;
+          margin: 0 0 1rem 0;
           color: #666;
           font-size: 0.95rem;
+        }
+
+        .builder-help {
+          margin-top: 1rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+          border-radius: 8px;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+          font-size: 0.9rem;
+          line-height: 1.6;
+          color: #333;
+        }
+
+        .builder-help strong {
+          color: #667eea;
         }
 
         .builder-content {

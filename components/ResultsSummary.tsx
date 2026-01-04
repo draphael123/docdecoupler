@@ -1,6 +1,7 @@
 'use client';
 
 import { ProcessingResult } from '@/lib/types';
+import { TipsPanel } from './TipsPanel';
 
 interface ResultsSummaryProps {
   result: ProcessingResult;
@@ -33,6 +34,14 @@ export function ResultsSummary({
             New Comparison
           </button>
         </div>
+      </div>
+
+      <div className="stats-explanation">
+        <p className="explanation-text">
+          <strong>Understanding the Results:</strong> Matches show content found in both documents. 
+          Shared units appear in both, while unique units are only in one document. 
+          Use the filters below to explore matches in detail.
+        </p>
       </div>
 
       <div className="stats-grid">
@@ -70,6 +79,8 @@ export function ResultsSummary({
           ℹ️ {overrides} manual override{overrides !== 1 ? 's' : ''} applied
         </div>
       )}
+
+      <TipsPanel context="results" />
 
       <style jsx>{`
         .summary-container {
@@ -272,6 +283,25 @@ export function ResultsSummary({
 
         .stat-card:not(.primary) .stat-detail {
           color: #666;
+        }
+
+        .stats-explanation {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+          border-radius: 12px;
+          padding: 1rem 1.25rem;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .explanation-text {
+          margin: 0;
+          color: #333;
+          font-size: 0.9rem;
+          line-height: 1.6;
+        }
+
+        .explanation-text strong {
+          color: #667eea;
         }
 
         .overrides-notice {

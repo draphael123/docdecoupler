@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { isPdfFile, formatFileSize } from '@/lib/extract';
+import { TipsPanel } from './TipsPanel';
 
 interface FileUploadProps {
   onFilesSelected: (fileA: File, fileB: File) => void;
@@ -81,6 +82,16 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
 
   return (
     <div className="upload-container">
+      <div className="upload-instructions">
+        <h3 className="instructions-title">📖 Getting Started</h3>
+        <ol className="instructions-list">
+          <li>Upload two PDF documents you want to compare</li>
+          <li>Drag & drop files or click to browse</li>
+          <li>Click &quot;Compare Documents&quot; to start analysis</li>
+          <li>Review matches, unique content, and statistics</li>
+        </ol>
+      </div>
+
       <div className="upload-grid">
         {/* Document A Upload */}
         <div 
@@ -147,6 +158,8 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
         Compare Documents
       </button>
 
+      <TipsPanel context="upload" />
+
       <style jsx>{`
         .upload-container {
           background: rgba(255, 255, 255, 0.95);
@@ -160,6 +173,35 @@ export function FileUpload({ onFilesSelected, disabled }: FileUploadProps) {
           animation: fadeIn 0.6s ease-out;
           position: relative;
           overflow: hidden;
+        }
+
+        .upload-instructions {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-bottom: 2rem;
+          border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .instructions-title {
+          margin: 0 0 1rem 0;
+          font-size: 1.1rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          font-weight: 700;
+        }
+
+        .instructions-list {
+          margin: 0;
+          padding-left: 1.5rem;
+          color: #333;
+          line-height: 2;
+        }
+
+        .instructions-list li {
+          margin-bottom: 0.5rem;
         }
 
         .upload-container::before {
